@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { collection, doc, setDoc, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { useNavigate } from "react-router-dom";
 
 const DataExtractor = () => {
   const [inputText, setInputText] = useState("");
   const [extractedData, setExtractedData] = useState(null);
+  const navigate = useNavigate();
 
   const extractData = (text) => {
     const normalizedText = text.replace(/\bobs\b\.?:/gi, "OBS:").trim();
     const headerRegex =
       /Cirurgias\s*-\s*(.+?),\s*(.+?)\s*-\s*(\d{2}\/\d{2}\/\d{2}),\s*(.+?),\s*às\s*(.+?)\s*horas/;
+
     const headerMatch = headerRegex.exec(normalizedText);
 
     const responsible = headerMatch ? headerMatch[1].trim() : "Não informado";
@@ -41,13 +44,18 @@ const DataExtractor = () => {
       );
 
       const name = match[1]?.trim() || "Não informado";
-      const status = match[2]?.trim() || "Não informado";
       const payment = match[3]?.trim() || "Sem informação";
 
       const convenioMatch = convenioRegex.exec(patientText);
       const cirurgiaMatch = cirurgiaRegex.exec(patientText);
       const lioMatch = lioRegex.exec(patientText);
       const obsMatch = obsRegex.exec(patientText);
+
+      // Mover obs2Regex para dentro do loop
+      const obs2Regex =
+        /(CONFIRMADO|CIENTE)\s*-\s*(.*?)(?=\s*(DN|Data de nascimento))/i;
+      const obs2Match = obs2Regex.exec(patientText);
+      const obs2 = obs2Match ? obs2Match[2].trim() : "Sem informação";
 
       const convenio = convenioMatch
         ? convenioMatch[1].trim()
@@ -58,10 +66,14 @@ const DataExtractor = () => {
       const lio = lioMatch ? lioMatch[1].trim() : "Sem informação";
       const obs = obsMatch ? obsMatch[1].trim() : "Sem informação";
 
-      patients.push({ name, status, payment, convenio, cirurgia, lio, obs });
+      patients.push({ name, payment, convenio, cirurgia, lio, obs, obs2 });
     });
 
     return { responsible, specialization, date, dayOfWeek, time, patients };
+  };
+  const handleReset = () => {
+    setInputText(""); // Reseta o texto de entrada
+    setExtractedData(null); // Reseta os dados extraídos
   };
 
   const handleGenerateData = () => {
@@ -124,7 +136,14 @@ const DataExtractor = () => {
         <button onClick={handleSave} style={styles.button}>
           Salvar
         </button>
+        <button onClick={() => navigate("/loaddata")} style={styles.mapButton}>
+          Mapas Cirúrgicos
+        </button>
+        <button onClick={() => handleReset()} style={styles.resetButton}>
+          Resetar
+        </button>
       </div>
+
       {extractedData && (
         <div style={styles.dataContainer}>
           <h3 style={styles.subHeader}>Dados Extraídos</h3>
@@ -154,12 +173,11 @@ const DataExtractor = () => {
               <tr>
                 <th>#</th>
                 <th>Nome</th>
-                <th>Status</th>
-                <th>Pagamento</th>
                 <th>Convênio</th>
                 <th>Cirurgia</th>
                 <th>Lio</th>
                 <th>Obs</th>
+                <th>Obs 2</th>
               </tr>
             </thead>
             <tbody>
@@ -167,12 +185,11 @@ const DataExtractor = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{patient.name}</td>
-                  <td>{patient.status}</td>
-                  <td>{patient.payment}</td>
                   <td>{patient.convenio}</td>
                   <td>{patient.cirurgia}</td>
                   <td>{patient.lio}</td>
                   <td>{patient.obs}</td>
+                  <td>{patient.obs2}</td>
                 </tr>
               ))}
             </tbody>
@@ -209,6 +226,13 @@ const styles = {
     boxShadow: "2px 2px 5px rgba(0,0,0,0.1)",
     resize: "vertical",
   },
+  title: {
+    fontSize: "28px",
+    color: "#2c3e50",
+    fontWeight: "bold",
+    flex: 1, // O título ocupa todo o espaço restante
+    textAlign: "center", // Centraliza o título
+  },
   buttonContainer: {
     marginTop: "20px",
     display: "flex",
@@ -232,6 +256,24 @@ const styles = {
     boxShadow: "2px 2px 10px rgba(0,0,0,0.1)",
     width: "100%",
     maxWidth: "800px",
+  },
+  mapButton: {
+    backgroundColor: "green",
+    color: "#fff",
+    padding: "10px 20px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "16px",
+  },
+  resetButton: {
+    backgroundColor: "red",
+    color: "#fff",
+    padding: "10px 20px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "16px",
   },
 };
 

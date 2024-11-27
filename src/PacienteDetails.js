@@ -8,11 +8,14 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { useNavigate } from "react-router-dom";
+import { IoIosArrowBack } from "react-icons/io";
 
 const PacienteDetails = () => {
   const { id } = useParams();
   const [paciente, setPaciente] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Estados para os valores editáveis
   const [tipoLio, setTipoLio] = useState("");
@@ -121,8 +124,11 @@ const PacienteDetails = () => {
         statusPgto: novoStatusPgto,
       });
 
+      // Atualiza o status de pagamento no estado
       setStatusPgto(novoStatusPgto);
-      alert("Informações salvas com sucesso!");
+
+      // Redireciona para LoadData
+      navigate("/loaddata");
     } catch (error) {
       console.error("Erro ao salvar as informações:", error);
       alert("Erro ao salvar as informações.");
@@ -139,7 +145,15 @@ const PacienteDetails = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Detalhes do Paciente</h1>
+      <div style={styles.header}>
+        <IoIosArrowBack
+          style={styles.backArrow}
+          onClick={() => navigate("/loaddata")}
+        />
+        <div>
+          <h3 style={styles.title}>Detalhes do Paciente</h3>
+        </div>
+      </div>
       <div style={styles.row}>
         {/* Primeira Coluna: Informações Gerais */}
         <div style={styles.column}>
@@ -278,7 +292,7 @@ const PacienteDetails = () => {
 
 const styles = {
   container: {
-    padding: "20px",
+    padding: "10px",
     fontFamily: "'Arial', sans-serif",
     maxWidth: "600px",
     margin: "0 auto",
@@ -287,11 +301,14 @@ const styles = {
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
   },
   header: {
+    display: "flex",
+    alignItems: "center",
+    gap: "140px", // Espaço entre a seta e o título
+    marginTop: "0px",
+  },
+  backArrow: {
     fontSize: "24px",
-    marginBottom: "20px",
-    color: "#2c3e50",
-    textAlign: "center",
-    fontWeight: "bold",
+    cursor: "pointer", // Mostra mãozinha ao passar o mouse
   },
   row: {
     display: "flex",
@@ -345,6 +362,14 @@ const styles = {
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
+  },
+  title: {
+    fontSize: "28px",
+    color: "#2c3e50",
+    fontWeight: "bold",
+    flex: 1, // O título ocupa todo o espaço restante
+    textAlign: "center", // Centraliza o título
+    marginTop: "0px",
   },
 };
 

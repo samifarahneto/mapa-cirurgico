@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { useNavigate } from "react-router-dom";
+import { IoIosArrowBack } from "react-icons/io";
 
 const LoadData = () => {
   const [cirurgias, setCirurgias] = useState([]);
@@ -56,7 +57,14 @@ const LoadData = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Dados Carregados</h1>
+      {/* Cabeçalho com seta e título */}
+      <div style={styles.header}>
+        <IoIosArrowBack
+          style={styles.backArrow}
+          onClick={() => navigate("/")}
+        />
+        <h1 style={styles.title}>Dados Carregados</h1>
+      </div>
       {cirurgias.map((cirurgia) => (
         <div key={cirurgia.id} style={styles.section}>
           <h2 style={styles.title}>Data do Mapa: {cirurgia.date}</h2>
@@ -65,11 +73,11 @@ const LoadData = () => {
               <tr>
                 <th style={styles.tableHeader}>#</th>
                 <th style={styles.tableHeader}>Nome</th>
-                <th style={styles.tableHeader}>Status</th>
                 <th style={styles.tableHeader}>Convênio</th>
                 <th style={styles.tableHeader}>Cirurgia</th>
                 <th style={styles.tableHeader}>Lio</th>
                 <th style={styles.tableHeader}>Observações</th>
+                <th style={styles.tableHeader}>Obs 2</th> {/* Nova coluna */}
               </tr>
             </thead>
             <tbody>
@@ -79,17 +87,19 @@ const LoadData = () => {
                   style={{
                     ...styles.tableRow,
                     color: getStatusColor(paciente.statusPgto), // Define a cor com base no status
+                    cursor: "pointer", // Faz o cursor virar mãozinha
                   }}
                   onClick={() => handleRowClick(paciente.id)} // Faz a linha ser clicável
                   role="button" // Adiciona acessibilidade
                 >
                   <td style={styles.tableCell}>{index + 1}</td>
                   <td style={styles.tableCell}>{paciente.name}</td>
-                  <td style={styles.tableCell}>{paciente.status}</td>
                   <td style={styles.tableCell}>{paciente.convenio}</td>
                   <td style={styles.tableCell}>{paciente.cirurgia}</td>
                   <td style={styles.tableCell}>{paciente.lio}</td>
                   <td style={styles.tableCell}>{paciente.obs}</td>
+                  <td style={styles.tableCell}>{paciente.obs2}</td>{" "}
+                  {/* Nova coluna */}
                 </tr>
               ))}
             </tbody>
@@ -111,11 +121,14 @@ const styles = {
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
   },
   header: {
-    fontSize: "28px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px", // Espaço entre a seta e o título
     marginBottom: "30px",
-    color: "#2c3e50",
-    textAlign: "center",
-    fontWeight: "bold",
+  },
+  backArrow: {
+    fontSize: "24px",
+    cursor: "pointer",
   },
   section: {
     marginBottom: "40px",
@@ -126,11 +139,11 @@ const styles = {
     boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
   },
   title: {
-    fontSize: "22px",
-    marginBottom: "15px",
-    color: "#34495e",
-    textAlign: "center",
+    fontSize: "28px",
+    color: "#2c3e50",
     fontWeight: "bold",
+    flex: 1, // O título ocupa todo o espaço restante
+    textAlign: "center", // Centraliza o título
   },
   subtitle: {
     fontSize: "20px",
