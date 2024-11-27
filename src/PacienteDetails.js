@@ -161,9 +161,6 @@ const PacienteDetails = () => {
             <strong>Nome:</strong> {paciente.name}
           </p>
           <p>
-            <strong>Status:</strong> {paciente.status}
-          </p>
-          <p>
             <strong>Convênio:</strong> {paciente.convenio}
           </p>
           <p>
@@ -174,6 +171,9 @@ const PacienteDetails = () => {
           </p>
           <p>
             <strong>Observações:</strong> {paciente.obs}
+          </p>
+          <p>
+            <strong>Observações 2:</strong> {paciente.obs2 || "Sem informação"}
           </p>
         </div>
 

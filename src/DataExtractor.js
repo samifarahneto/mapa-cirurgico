@@ -77,7 +77,9 @@ const DataExtractor = () => {
   };
 
   const handleGenerateData = () => {
+    console.log("Texto inserido:", JSON.stringify(inputText)); // Log do texto inserido
     const data = extractData(inputText);
+    console.log("Dados extraídos:", data); // Log dos dados extraídos
     setExtractedData(data);
   };
 
