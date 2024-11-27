@@ -3,6 +3,8 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const LoadData = () => {
   const [cirurgias, setCirurgias] = useState([]);
@@ -51,6 +53,43 @@ const LoadData = () => {
     fetchData();
   }, []);
 
+  const generatePDF = (cirurgia) => {
+    const doc = new jsPDF();
+
+    // Centraliza o título
+    doc.setFontSize(16); // Define tamanho maior para o título
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.text(`Mapa Cirúrgico - Data: ${cirurgia.date}`, pageWidth / 2, 10, {
+      align: "center",
+    });
+
+    // Diminui a fonte para o responsável e especialidade
+    doc.setFontSize(12); // Fonte menor
+    doc.text(`Responsável: ${cirurgia.responsible}`, 10, 20);
+    doc.text(`Especialidade: ${cirurgia.specialization}`, 10, 25);
+
+    // Gera os dados da tabela
+    const tableData = cirurgia.pacientes.map((paciente, index) => [
+      index + 1,
+      paciente.name,
+      paciente.convenio,
+      paciente.cirurgia,
+      paciente.lio,
+      paciente.obs,
+      paciente.obs2,
+    ]);
+
+    // Gera a tabela
+    doc.autoTable({
+      head: [["#", "Nome", "Convênio", "Cirurgia", "Lio", "Obs", "Obs 2"]],
+      body: tableData,
+      startY: 40, // Ajusta a posição da tabela após o cabeçalho
+    });
+
+    // Salva o PDF com o nome baseado na data
+    doc.save(`Mapa_Cirurgico_${cirurgia.date}.pdf`);
+  };
+
   const handleRowClick = (pacienteId) => {
     navigate(`/paciente/${pacienteId}`); // Navega para a página do paciente
   };
@@ -67,7 +106,15 @@ const LoadData = () => {
       </div>
       {cirurgias.map((cirurgia) => (
         <div key={cirurgia.id} style={styles.section}>
-          <h2 style={styles.title}>Data do Mapa: {cirurgia.date}</h2>
+          <div style={styles.headerSection}>
+            <h2 style={styles.subtitle}>Data do Mapa: {cirurgia.date}</h2>
+            <button
+              style={styles.pdfButton}
+              onClick={() => generatePDF(cirurgia)}
+            >
+              Gerar PDF
+            </button>
+          </div>
           <table style={styles.table}>
             <thead>
               <tr>
@@ -77,7 +124,7 @@ const LoadData = () => {
                 <th style={styles.tableHeader}>Cirurgia</th>
                 <th style={styles.tableHeader}>Lio</th>
                 <th style={styles.tableHeader}>Observações</th>
-                <th style={styles.tableHeader}>Obs 2</th> {/* Nova coluna */}
+                <th style={styles.tableHeader}>Obs 2</th>
               </tr>
             </thead>
             <tbody>
@@ -86,11 +133,11 @@ const LoadData = () => {
                   key={paciente.id}
                   style={{
                     ...styles.tableRow,
-                    color: getStatusColor(paciente.statusPgto), // Define a cor com base no status
-                    cursor: "pointer", // Faz o cursor virar mãozinha
+                    color: getStatusColor(paciente.statusPgto),
+                    cursor: "pointer",
                   }}
-                  onClick={() => handleRowClick(paciente.id)} // Faz a linha ser clicável
-                  role="button" // Adiciona acessibilidade
+                  onClick={() => handleRowClick(paciente.id)}
+                  role="button"
                 >
                   <td style={styles.tableCell}>{index + 1}</td>
                   <td style={styles.tableCell}>{paciente.name}</td>
@@ -98,8 +145,7 @@ const LoadData = () => {
                   <td style={styles.tableCell}>{paciente.cirurgia}</td>
                   <td style={styles.tableCell}>{paciente.lio}</td>
                   <td style={styles.tableCell}>{paciente.obs}</td>
-                  <td style={styles.tableCell}>{paciente.obs2}</td>{" "}
-                  {/* Nova coluna */}
+                  <td style={styles.tableCell}>{paciente.obs2}</td>
                 </tr>
               ))}
             </tbody>
@@ -175,6 +221,22 @@ const styles = {
     padding: "10px",
     textAlign: "center",
     border: "1px solid #ddd",
+  },
+  pdfButton: {
+    backgroundColor: "green",
+    color: "#fff",
+    padding: "10px 20px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+    marginLeft: "auto", // Alinha o botão à direita
+  },
+  headerSection: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between", // Distribui o conteúdo
+    marginBottom: "20px",
   },
 };
 
